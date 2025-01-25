@@ -44,8 +44,8 @@ export default function TradeForm({ trade: initialTrade, onSuccess }: { trade?: 
     if (isNaN(entryPrice) || isNaN(exitPrice) || isNaN(stake)) return null
     
     let profitLoss = trade.direction === 'long' ?
-      ((exitPrice - entryPrice) / entryPrice * stake) :
-      ((entryPrice - exitPrice) / entryPrice * stake)
+      ((exitPrice - entryPrice) * stake) :
+      ((entryPrice - exitPrice) * stake)
     
     profitLoss -= fees
     

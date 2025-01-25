@@ -32,8 +32,8 @@ export function TradeProvider({ children }: { children: ReactNode }) {
 
   const addTrade = (trade: Omit<Trade, 'id' | 'profitLoss'>) => {
     const profitLoss = trade.direction === 'long' ?
-      ((trade.exitPrice - trade.entryPrice) / trade.entryPrice * trade.stake) :
-      ((trade.entryPrice - trade.exitPrice) / trade.entryPrice * trade.stake)
+      ((trade.exitPrice - trade.entryPrice) * trade.stake) - trade.fees :
+      ((trade.entryPrice - trade.exitPrice) * trade.stake) - trade.fees
     
     const newTrade = {
       ...trade,
@@ -46,8 +46,8 @@ export function TradeProvider({ children }: { children: ReactNode }) {
 
   const updateTrade = (updatedTrade: Trade) => {
     const profitLoss = updatedTrade.direction === 'long' ?
-      ((updatedTrade.exitPrice - updatedTrade.entryPrice) / updatedTrade.entryPrice * updatedTrade.stake) :
-      ((updatedTrade.entryPrice - updatedTrade.exitPrice) / updatedTrade.entryPrice * updatedTrade.stake)
+      ((updatedTrade.exitPrice - updatedTrade.entryPrice) * updatedTrade.stake) - updatedTrade.fees :
+      ((updatedTrade.entryPrice - updatedTrade.exitPrice) * updatedTrade.stake) - updatedTrade.fees
     
     setTrades(prev => prev.map(trade => 
       trade.id === updatedTrade.id ? 
