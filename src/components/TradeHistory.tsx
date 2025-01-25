@@ -3,8 +3,19 @@ import { useTradeContext } from '../context/TradeContext'
 import TradeForm from './TradeForm'
 
 export default function TradeHistory() {
-  const { trades, removeTrade } = useTradeContext()
+  const { trades, removeTrade, updateTrade } = useTradeContext()
   const [showModal, setShowModal] = useState(false)
+  const [editingTrade, setEditingTrade] = useState(null)
+
+  const handleEditClick = (trade) => {
+    setEditingTrade(trade)
+    setShowModal(true)
+  }
+
+  const handleEditSuccess = () => {
+    setShowModal(false)
+    setEditingTrade(null)
+  }
 
   return (
     <>
@@ -12,7 +23,10 @@ export default function TradeHistory() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Trade History</h2>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              setEditingTrade(null)
+              setShowModal(true)
+            }}
             className="btn-primary"
           >
             Add New Trade
@@ -64,6 +78,12 @@ export default function TradeHistory() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     <button
+                      onClick={() => handleEditClick(trade)}
+                      className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-2"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => removeTrade(trade.id)}
                       className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                     >
@@ -82,7 +102,9 @@ export default function TradeHistory() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Add New Trade</h3>
+              <h3 className="text-xl font-semibold">
+                {editingTrade ? 'Edit Trade' : 'Add New Trade'}
+              </h3>
               <button
                 onClick={() => setShowModal(false)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
@@ -90,7 +112,10 @@ export default function TradeHistory() {
                 &times;
               </button>
             </div>
-            <TradeForm onSuccess={() => setShowModal(false)} />
+            <TradeForm 
+              trade={editingTrade} 
+              onSuccess={handleEditSuccess} 
+            />
           </div>
         </div>
       )}

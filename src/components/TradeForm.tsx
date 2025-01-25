@@ -1,21 +1,39 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTradeContext } from '../context/TradeContext'
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa'
 
 const INSTRUMENTS = ['DE40', 'F40', 'STOXX50']
 
-export default function TradeForm({ onSuccess }: { onSuccess: () => void }) {
-  const { addTrade } = useTradeContext()
+const formatDateForInput = (date: Date) => {
+  const pad = (num: number) => num.toString().padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+export default function TradeForm({ trade: initialTrade, onSuccess }: { trade?: any, onSuccess: () => void }) {
+  const { addTrade, updateTrade } = useTradeContext()
+  const now = new Date()
+  const defaultDate = formatDateForInput(now)
+
   const [trade, setTrade] = useState({
     instrument: '',
-    entryDateTime: '',
-    exitDateTime: '',
+    entryDateTime: defaultDate,
+    exitDateTime: defaultDate,
     entryPrice: '',
     exitPrice: '',
     direction: 'long',
     stake: '',
     fees: ''
   })
+
+  useEffect(() => {
+    if (initialTrade) {
+      setTrade({
+        ...initialTrade,
+        entryDateTime: formatDateForInput(new Date(initialTrade.entryDateTime)),
+        exitDateTime: formatDateForInput(new Date(initialTrade.exitDateTime))
+      })
+    }
+  }, [initialTrade])
 
   const calculateProfitLoss = () => {
     const entryPrice = parseFloat(trade.entryPrice)
@@ -29,7 +47,6 @@ export default function TradeForm({ onSuccess }: { onSuccess: () => void }) {
       ((exitPrice - entryPrice) / entryPrice * stake) :
       ((entryPrice - exitPrice) / entryPrice * stake)
     
-    // Subtract fees from profit/loss
     profitLoss -= fees
     
     return {
@@ -43,31 +60,34 @@ export default function TradeForm({ onSuccess }: { onSuccess: () => void }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    const newTrade = {
-      instrument: trade.instrument,
-      entryDateTime: trade.entryDateTime,
-      exitDateTime: trade.exitDateTime,
+    const tradeData = {
+      ...trade,
       entryPrice: parseFloat(trade.entryPrice),
       exitPrice: parseFloat(trade.exitPrice),
-      direction: trade.direction,
       stake: parseFloat(trade.stake),
       fees: parseFloat(trade.fees) || 0
     }
+
+    if (initialTrade) {
+      updateTrade({ ...tradeData, id: initialTrade.id })
+    } else {
+      addTrade(tradeData)
+    }
     
-    addTrade(newTrade)
     onSuccess()
     
-    // Reset form
-    setTrade({
-      instrument: '',
-      entryDateTime: '',
-      exitDateTime: '',
-      entryPrice: '',
-      exitPrice: '',
-      direction: 'long',
-      stake: '',
-      fees: ''
-    })
+    if (!initialTrade) {
+      setTrade({
+        instrument: '',
+        entryDateTime: defaultDate,
+        exitDateTime: defaultDate,
+        entryPrice: '',
+        exitPrice: '',
+        direction: 'long',
+        stake: '',
+        fees: ''
+      })
+    }
   }
 
   return (
@@ -217,7 +237,7 @@ export default function TradeForm({ onSuccess }: { onSuccess: () => void }) {
           Cancel
         </button>
         <button type="submit" className="btn-primary">
-          Add Trade
+          {initialTrade ? 'Update Trade' : 'Add Trade'}
         </button>
       </div>
     </form>
